@@ -38,7 +38,7 @@ isiif.GetImage cxy, SIIGBF_THUMBNAILONLY, GetFileThumbnail
 
 9) This produces some errors. WinDevLib documentation covers some of these: For `CreateFile` and `ReadFile`, instead of `ByVal 0` to an `As Any` argument, we pass `vbNullPtr` to a `SECURITY_ATTTRIBUTES` and `OVERLAPPED` argument, respectively. `CoCreateInstance` is just using a slightly different signature; insted of 0, we can pass `Nothing` to the `punkOuter` argument. The `GetObject` one... personally, I would classify this as a tB bug. Packages should be user-code that overrides built in packages without being higher in the priority list. But that's not how it currently works, so we're getting an error here because it's resolved as VB's GetObject, unrelated to the API call. Two options here, explicitly use `GetObjectW`, or a standard 'API' alias is defined, `GetObjectAPI`.
 
-10) A couple more thing to change with API calls-- in `BStrFromLPWStr` we change SysReAllocString to SysReAllocStringW because of argument types, then, and this is one is a little insidious: Like VB6, tB does implicitly Long->String conversions, so doesn't notify us of the looming problem here:
+10) A few more thing to change with API calls-- in `BStrFromLPWStr` we change SysReAllocString to SysReAllocStringW because of argument types, then, and this is one is a little insidious: Like VB6, tB does implicitly Long->String conversions, so doesn't notify us of the looming problem here:
 
     ```vba
     Public Function GetHandlerCLSID(ByVal sExt As String, tID As UUID) As Long
@@ -48,6 +48,7 @@ isiif.GetImage cxy, SIIGBF_THUMBNAILONLY, GetFileThumbnail
 
     WinDevLib has a different signature for that API, especting a `String` instead of `LongPtr`. It won't error-- it will just return GUID_NULL, resulting in 'Class not registered' errors you'd first think were 64bit issues.
 
+    Additionally, COMDLG_FILTERSPEC expects a `LongPtr` (`StrPtr()` here) in WinDevLib (my projects have been inconsistent about this, sorry).\
     Finally, `ShowPreviewForFile` has a similar lying-in-wait landmine: `IInitializeWithFile` expects `StrPtr(sFile)`, not a `String`. This changes relates to `Implements` compatibility. 
 
 
