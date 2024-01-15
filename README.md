@@ -5,7 +5,7 @@ IPreviewHandler Sample Project
 
 **Bringing my IPreviewHandler Sample Project to twinBASIC**
 
-**Project Update - 15 Jan 2024
+**Project Update - 15 Jan 2024**\
 Version 2 
 - Corrects infinite loop when both a local and inproc server handler has the same bug
 - Corrects local server being dpi aware when this app is not.
