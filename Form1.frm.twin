@@ -10,9 +10,18 @@ Class Form1
     Attribute VB_Exposed = False
     Option Explicit
     
+    'Version 2 
+    '--Corrects infinite loop when both a local and inproc server handler has the same bug
+    '--Corrects local server being dpi aware when this app is not.
+    '--Better error handling
+    
     Private ipv As IPreviewHandler
     Private hGlobal As LongPtr
-    
+ 
+    Private mZoom As Single
+    Private mActualZoom As Single 'If we use a local server, and system dpi awareness is on
+                                  'we must scale even though we're not DPI aware
+                                  
     Private Sub Command1_Click()
     Dim isi As IShellItem
     Dim FileFilter() As COMDLG_FILTERSPEC
@@ -37,10 +46,8 @@ Class Form1
         fod.GetResult isi
         If (isi Is Nothing) Then Exit Sub
     End With
-        rc.Top = 16
-        rc.Bottom = (Picture1.Height / Screen.TwipsPerPixelY) - 16
-        rc.Left = 16
-        rc.Right = (Picture1.Width / Screen.TwipsPerPixelX) - 16
+    
+        GetClientRect Picture1.hWnd, rc
     
     ShowPreviewForFile isi, Picture1.hWnd, rc, Picture1
     Set isi = Nothing
@@ -56,7 +63,9 @@ Class Form1
     Dim sFile As String, sExt As String
     Dim lp As LongPtr
     Dim tHandler As UUID
-    'On Error GoTo e0
+    Dim bBreak As Boolean
+    Dim bLocal As Boolean
+    On Error GoTo e0
     
     If (isi Is Nothing) Then
         Debug.Print "no isi"
@@ -90,14 +99,16 @@ Class Form1
         ' End If
         If hr <> S_OK Then
             Debug.Print "CoCreateInstance failed, trying alternate args... (hr=0x" & Hex$(hr) & ")"
-        restart_local:
             hr = CoCreateInstance(tHandler, Nothing, CLSCTX_LOCAL_SERVER, IID_IPreviewHandler, ipv)
             Debug.Print "LOCAL hr=0x" & Hex$(hr)
             If hr <> S_OK Then
                 hr = CoCreateInstance(tHandler, Nothing, CLSCTX_INPROC_SERVER, IID_IPreviewHandler, ipv)
                 Debug.Print "INPROC hr=0x" & Hex$(hr)
+            Else
+            	bLocal = True
             End If
         End If
+        restart:
         'Set iisi = ipv 'this normally can be used in place of Set pUnk / .QueryInterface, but we need the HRESULT
         Set pUnk = ipv
     '    Set iif = ipv
@@ -151,14 +162,30 @@ Class Form1
     
         End If
     gpvh:
+        If bLocal Then
+        	If Abs(mActualZoom - mZoom) > 0.01 Then 'not the same, within floating point error
+            	rc.Left *= mActualZoom
+                rc.Bottom *= mActualZoom
+                rc.Right *= mActualZoom
+                rc.Top *= mActualZoom
+        	End If
+        End If
         hr = ipv.SetWindow(hWnd, rc)
         Debug.Print "SetWindow hr=" & hr
         If hr <> S_OK Then
         	Exit Sub
         End If
+
         hr = ipv.DoPreview()
         Debug.Print "DoPreview hr=" & hr
+        Dim prc As RECT
+        GetClientRect hWnd, prc
+        ipv.SetRect prc
         If hr = E_FAIL Then
+        	If bBreak = True Then
+            	Debug.Print "All attempts to create a valid handler failed."
+                Exit Sub
+        	End If
         	'We've got a real problem here. Some handlers fail at this point with E_FAIL (LOOKING AT YOU, ADOBE)
             'Because it's an inproc server. But others will fail here if it's a local folder (shout out Microsoft!)
             'So we start with inproc, then we'll restart with local, because the MS handlers don't even give the
@@ -166,9 +193,20 @@ Class Form1
             Set iisi = Nothing
             Set iif = Nothing
             Set iis = Nothing
+            ipv.Unload
             Set ipv = Nothing
             Debug.Print "INPROC failed at DoPreview(); attempting again with LOCAL..."
-            GoTo restart_local
+            hr = CoCreateInstance(tHandler, Nothing, CLSCTX_LOCAL_SERVER, IID_IPreviewHandler, ipv)
+            If hr = S_OK Then
+                bBreak = True
+                bLocal = True
+                Debug.Print "Successfully created on local server, restarting..."
+                GoTo restart
+            Else
+            	If ipv Is Nothing Then
+                	Debug.Print "Couldn't recreate on local server; preview failed."
+            	End If
+            End If
         End If
         Dim piunk As IUnknownUnrestricted
         Set piunk = ipv
@@ -246,6 +284,24 @@ Class Form1
     End If
     
     
+    End Sub
+    
+    Private Sub Form_Load() Handles Form.Load
+        Dim hDC As LongPtr
+        hDC = GetDC(0&)
+        mZoom = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+        Debug.Print "dpix=" & GetDeviceCaps(hDC, LOGPIXELSX) / 96
+        ReleaseDC 0&, hDC
+        
+        'Get the actual scale factor even if virtualized.
+        'Thanks LaVolpe
+        Dim tDC As LongPtr, lRez As Long, lDPI As Long
+        tDC = GetDC(0)
+        lRez = GetDeviceCaps(tDC, DESKTOPHORZRES)
+        ReleaseDC 0, tDC
+        lDPI = 96! * lRez / (Screen.Width / Screen.TwipsPerPixelX)
+        mActualZoom = CSng(lDPI) / 96!
+        
     End Sub
     
 

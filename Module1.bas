@@ -75,9 +75,9 @@ Else
     Call ILFree(pidl)
 End If
 Dim cxy As LongLong
-Dim pSZ As SIZE
-pSZ.cx = CX: pSZ.cy	= CY
-CopyMemory cxy, pSZ, LenB(Of SIZE)
+Dim pSZ As POINT
+pSZ.x = CX: pSZ.y	= CY
+cxy = PointToLongLong(psz)
 isiif.GetImage cxy, SIIGBF_THUMBNAILONLY, GetFileThumbnail
 Set isiif = Nothing
 On Error GoTo 0
