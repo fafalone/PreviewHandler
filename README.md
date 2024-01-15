@@ -5,6 +5,13 @@ IPreviewHandler Sample Project
 
 **Bringing my IPreviewHandler Sample Project to twinBASIC**
 
+**Project Update - 15 Jan 2024
+Version 2 
+- Corrects infinite loop when both a local and inproc server handler has the same bug
+- Corrects local server being dpi aware when this app is not.
+- Better error handling
+
+    
 I'm writing this one up as an example of handling a semi-rough import of a project and updating it to x64.\
 Files:
 PreviewHandlerDemo.twinproj - The immediate VB6 import, no changes besides importing mIID.bas since the relative path was wrong, and re-checking the oleexp.tlb reference.\
