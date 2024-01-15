@@ -22,7 +22,7 @@ PreviewHanderDemo64.twinproj - The final x64 conversion, with a few minor update
 
 5) You'll see a lot of red at this point-- but it's pretty simple to clean up. The ReadMe in the WinDevLib repository has [a guide to switching from oleexp](https://github.com/fafalone/WinDevLib#guide-to-switching-from-oleexptlb).
 
-6) Following those steps, we delete the references to oleexp-- `oleexp.SIZE` becomes just `SIZE`, and `leexp.IUnknown`, as the readme notes, becomes **`IUnknownUnrestricted`**, which is better than the conflicted same name.
+6) Following those steps, we delete the references to oleexp-- `oleexp.SIZE` becomes just `SIZE`, and `oleexp.IUnknown`, as the readme notes, becomes **`IUnknownUnrestricted`**, which is better than the conflicted same name.
 
 7) That leaves us with a single error: 'Too many arguments' in a call to IShellItemImageFactory.GetImage. This was a change made for 64bit compatibility. The first argument for GetImage expects a `ByVal SIZE`, but tB does not currently support this. In oleexp, only thinking of 32bit, the solution was to split the arguments into two, `ByVal cx As Long, ByVal cy As Long`. However, this doesn't work with the 64bit calling convention-- instead of bytes on stack, it uses registers here, so two arguments would occupy two 8-bit registers, instead of a contiguous 8 bytes. So for now, we use `ByVal LongLong`. Now, I could done separate definitions and left 32bit alone, but I thought it was better to have a single approach that worked for both, that way no conditional compilation is needed. So we make the following change:
 
