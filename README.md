@@ -48,7 +48,7 @@ isiif.GetImage cxy, SIIGBF_THUMBNAILONLY, GetFileThumbnail
 
     WinDevLib has a different signature for that API, especting a `String` instead of `LongPtr`. It won't error-- it will just return GUID_NULL, resulting in 'Class not registered' errors you'd first think were 64bit issues.
 
-    Additionally, COMDLG_FILTERSPEC expects a `LongPtr` (`StrPtr()` here) in WinDevLib (my projects have been inconsistent about this, sorry).\
+    Additionally, `COMDLG_FILTERSPEC` expects a `LongPtr` (`StrPtr()` here) in WinDevLib (my projects have been inconsistent about this, sorry).\
     Finally, `ShowPreviewForFile` has a similar lying-in-wait landmine: `IInitializeWithFile` expects `StrPtr(sFile)`, not a `String`. This changes relates to `Implements` compatibility. 
 
 
