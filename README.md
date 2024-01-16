@@ -8,7 +8,7 @@ IPreviewHandler Sample Project
   
 **Project Update - 16 Jan 2024**\
 Version 2 Revision 2
-- Adjusted DoPreview() failure check to retry if any error HRESULT instead of just E_FAIL
+- Adjusted `DoPreview()` failure check to retry if any error `HRESULT` instead of just `E_FAIL`
   
 **Project Update - 16 Jan 2024**\
 Version 2 Revision 1
