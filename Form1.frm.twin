@@ -10,6 +10,9 @@ Class Form1
     Attribute VB_Exposed = False
     Option Explicit
     
+    'Version 2 Revision 2
+    ' --Adjusted DoPreview() failure check to retry if any error HRESULT instead of just E_FAIL
+    
     'Version 2 Revision 1
     ' --Did not repeat DPI adjustment for handlers requiring SetRect after DoPreview()..
     
@@ -192,7 +195,7 @@ Class Form1
             End If
         End If
         ipv.SetRect prc
-        If hr = E_FAIL Then
+        If SUCCEEDED(hr) = False Then
         	If bBreak = True Then
             	Debug.Print "All attempts to create a valid handler failed."
                 Exit Sub
