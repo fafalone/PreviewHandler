@@ -10,10 +10,13 @@ Class Form1
     Attribute VB_Exposed = False
     Option Explicit
     
-    'Version 2 
-    '--Corrects infinite loop when both a local and inproc server handler has the same bug
-    '--Corrects local server being dpi aware when this app is not.
-    '--Better error handling
+    'Version 2 Revision 1
+    ' --Did not repeat DPI adjustment for handlers requiring SetRect after DoPreview()..
+    
+    ' Version 2 
+    ' --Corrects infinite loop when both a local and inproc server handler has the same bug
+    ' --Corrects local server being dpi aware when this app is not.
+    ' --Better error handling
     
     Private ipv As IPreviewHandler
     Private hGlobal As LongPtr
@@ -180,6 +183,14 @@ Class Form1
         Debug.Print "DoPreview hr=" & hr
         Dim prc As RECT
         GetClientRect hWnd, prc
+        If bLocal Then
+            If Abs(mActualZoom - mZoom) > 0.01 Then 'not the same, within floating point error
+                prc.Left *= mActualZoom
+                prc.Bottom *= mActualZoom
+                prc.Right *= mActualZoom
+                prc.Top *= mActualZoom
+            End If
+        End If
         ipv.SetRect prc
         If hr = E_FAIL Then
         	If bBreak = True Then
