@@ -5,6 +5,10 @@ IPreviewHandler Sample Project
 
 **Bringing my IPreviewHandler Sample Project to twinBASIC**
 
+**Project Update - 16 Jan 2024**\
+Version 2 Revision 1
+- Did not repeat DPI adjustment for handlers requiring SetRect after DoPreview()..
+    
 **Project Update - 15 Jan 2024**\
 Version 2 
 - Corrects infinite loop when both a local and inproc server handler has the same bug
