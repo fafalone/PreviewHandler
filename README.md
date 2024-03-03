@@ -6,6 +6,8 @@ IPreviewHandler Sample Project
 **Bringing my IPreviewHandler Sample Project to twinBASIC**
 
   
+Update (03 Mar 2024): .twinproj has been updated to use a more recent version of WinDevLib (formerly tbShellLib) due to errors in the package tB did not raise at the time this project was released.
+
 **Project Update - 16 Jan 2024**\
 Version 2 Revision 2
 - Adjusted `DoPreview()` failure check to retry if any error `HRESULT` instead of just `E_FAIL`
